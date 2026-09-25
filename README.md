@@ -501,7 +501,7 @@ Chỉ gửi kết quả cuối cùng:
 Đề xuất cấu trúc:
 
 ```text
-mobile/
+app/
 │
 ├── src/
 │   │
