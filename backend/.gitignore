@@ -1,0 +1,29 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+*.DotSettings.user
+
+## Secrets — không commit key thật
+appsettings.Production.json
+appsettings.*.local.json
+secrets.json
+.env
+*.pfx
+
+## Test output
+[Tt]est[Rr]esults/
+TestResults/
+*.coverage
+coverage*.json
+coverage*.xml
+coverage*.info
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
