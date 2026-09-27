@@ -1,12 +1,45 @@
 import { create } from 'zustand';
+import axios from 'axios';
 
-import type { LoginPayload } from '../types/auth';  
+import type { AuthResponse, User } from '../types';
+import type { LoginPayload } from '../types/auth';
 import { authService } from '../services/auth.service';
-import { ACCESS_TOKEN_KEY } from '../services/api';
+import { ACCESS_TOKEN_KEY, API_BASE_URL } from '../services/api';
 import { deleteStorageItem, getStorageItem, setStorageItem } from '../services/storage';
-import type { User } from '../types';
 
 const USER_KEY = 'learning_companion.user';
+
+const DEMO_ACCOUNTS = {
+  parent: {
+    email: 'parent@nienluan.local',
+    password: 'Parent@123',
+  },
+  student: {
+    email: 'student@nienluan.local',
+    password: 'Student@123',
+  },
+} as const;
+
+async function persistSession(session: AuthResponse) {
+  await setStorageItem(ACCESS_TOKEN_KEY, session.accessToken);
+  await setStorageItem(USER_KEY, JSON.stringify(session.user));
+}
+
+function getLoginErrorMessage(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      return `Không kết nối được API tại ${API_BASE_URL}.`;
+    }
+
+    if (error.response.status === 401) {
+      return 'Email hoặc mật khẩu không đúng.';
+    }
+
+    return `API trả về lỗi ${error.response.status}.`;
+  }
+
+  return 'Đăng nhập thành công nhưng không thể lưu phiên trên thiết bị.';
+}
 
 interface AuthState {
   user: User | null;
@@ -43,26 +76,25 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       const session = await authService.login(payload);
-      await setStorageItem(ACCESS_TOKEN_KEY, session.accessToken);
-      await setStorageItem(USER_KEY, JSON.stringify(session.user));
+      await persistSession(session);
       set({ user: session.user, isLoading: false });
       return true;
-    } catch {
-      set({ isLoading: false, error: 'Không thể đăng nhập. Vui lòng kiểm tra tài khoản.' });
+    } catch (error) {
+      set({ isLoading: false, error: getLoginErrorMessage(error) });
       return false;
     }
   },
 
   loginDemo: async (role) => {
-    const user: User = {
-      id: role === 'parent' ? 1 : 2,
-      fullName: role === 'parent' ? 'Nguyễn Minh Anh' : 'Trần Gia Bảo',
-      email: `${role}@demo.local`,
-      role,
-    };
+    set({ isLoading: true, error: null });
 
-    await setStorageItem(USER_KEY, JSON.stringify(user));
-    set({ user, error: null });
+    try {
+      const session = await authService.login(DEMO_ACCOUNTS[role]);
+      await persistSession(session);
+      set({ user: session.user, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false, error: getLoginErrorMessage(error) });
+    }
   },
 
   logout: async () => {

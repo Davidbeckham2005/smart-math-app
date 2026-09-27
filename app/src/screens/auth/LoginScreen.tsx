@@ -55,12 +55,12 @@ export function LoginScreen() {
       </View>
 
       <View style={styles.demoSection}>
-        <Text style={styles.demoLabel}>Chưa kết nối API? Mở bản demo</Text>
+        <Text style={styles.demoLabel}>Demo tài khoản thật trong SQL Server</Text>
         <View style={styles.demoRow}>
-          <Pressable onPress={() => void loginDemo('parent')} style={styles.demoButton}>
+          <Pressable disabled={isLoading} onPress={() => void loginDemo('parent')} style={styles.demoButton}>
             <Text style={styles.demoText}>Phụ huynh</Text>
           </Pressable>
-          <Pressable onPress={() => void loginDemo('student')} style={styles.demoButton}>
+          <Pressable disabled={isLoading} onPress={() => void loginDemo('student')} style={styles.demoButton}>
             <Text style={styles.demoText}>Học sinh</Text>
           </Pressable>
         </View>
